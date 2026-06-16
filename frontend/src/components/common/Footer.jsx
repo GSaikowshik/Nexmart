@@ -51,6 +51,18 @@ export default function Footer() {
 
         <div className="footer-bottom flex justify-between align-center flex-wrap gap-md">
           <p>&copy; {new Date().getFullYear()} NexMart Inc. All rights reserved.</p>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+            Developed by{' '}
+            <a 
+              href="https://www.linkedin.com/in/gandikotasaikowshik" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-gradient" 
+              style={{ fontWeight: 600, textDecoration: 'none', display: 'inline-block' }}
+            >
+              Gandikota Sai Kowshik
+            </a>
+          </p>
           <div className="flex gap-md">
             <a href="#" className="footer-link">Privacy Policy</a>
             <a href="#" className="footer-link">Terms of Service</a>
