@@ -147,18 +147,11 @@ button {
 }
 
 .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
-.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.grid-cols-4 { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
 
-@media (max-width: 1024px) {
-  .grid-cols-4 { grid-template-columns: repeat(3, 1fr); }
-}
 @media (max-width: 768px) {
-  .grid-cols-3, .grid-cols-4 { grid-template-columns: repeat(2, 1fr); }
   .grid-cols-2 { grid-template-columns: 1fr; }
-}
-@media (max-width: 480px) {
-  .grid-cols-3, .grid-cols-4, .grid-cols-2 { grid-template-columns: 1fr; }
 }
 
 /* Glassmorphism Panel */
@@ -886,4 +879,61 @@ main.app-content {
 .skeleton-image {
   height: 200px;
   width: 100%;
+}
+
+/* ==========================================================================
+   MOBILE RESPONSIVENESS MEDIA QUERIES & LAYOUT ADAPTATION
+   ========================================================================== */
+.shop-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 40px;
+}
+
+/* Ensure all images scale down inside containers */
+.product-card-img,
+.product-gallery img,
+.gallery-main img,
+.cart-item-img,
+.category-image,
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  /* Navbar Mobile Layout */
+  .navbar {
+    position: relative;
+    height: auto;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .navbar-inner {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 0;
+  }
+  
+  .nav-links {
+    gap: 24px;
+  }
+
+  main.app-content {
+    padding-top: 24px;
+  }
+
+  /* Shop Page Mobile Layout */
+  .shop-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  /* Footer Bottom Mobile Layout */
+  .footer-bottom {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+  }
 }

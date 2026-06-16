@@ -96,7 +96,7 @@ export default function Shop() {
         </form>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: '40px' }}>
+      <div className="shop-layout">
         {/* Filters Sidebar */}
         <aside className="glass" style={{ borderRadius: 'var(--radius-lg)', padding: '24px', height: 'fit-content', display: 'flex', flexDirection: 'column', gap: '28px' }}>
           <div>
