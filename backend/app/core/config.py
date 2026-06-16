@@ -5,8 +5,6 @@ class Settings(BaseSettings):
     supabase_url: str = Field(..., validation_alias="SUPABASE_URL")
     supabase_anon_key: str = Field(..., validation_alias="SUPABASE_ANON_KEY")
     supabase_jwt_secret: str = Field(..., validation_alias="SUPABASE_JWT_SECRET")
-    stripe_api_key: str = Field(..., validation_alias="STRIPE_API_KEY")
-    stripe_webhook_secret: str = Field(..., validation_alias="STRIPE_WEBHOOK_SECRET")
     host: str = Field("127.0.0.1", validation_alias="HOST")
     port: int = Field(8000, validation_alias="PORT")
 

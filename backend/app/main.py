@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="E-Commerce API Service",
-    description="Backend service powering catalog, cart, orders, and Stripe checkouts.",
+    description="Backend service powering catalog, cart, and orders.",
     version="1.0.0",
 )
 
@@ -50,4 +50,4 @@ def health_check():
 if __name__ == "__main__":
     import uvicorn
     logger.info(f"Starting server on {settings.host}:{settings.port}")
-    uvicorn.run("main:app", host=settings.host, port=settings.port, reload=True)
+    uvicorn.run("app.main:app", host=settings.host, port=settings.port, reload=True)

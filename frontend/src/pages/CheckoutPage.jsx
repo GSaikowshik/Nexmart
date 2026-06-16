@@ -19,14 +19,7 @@ export default function CheckoutPage() {
     country: '',
   });
 
-  // Card details State
-  const [cardDetails, setCardDetails] = useState({
-    number: '4242 •••• •••• 4242',
-    expiry: '12/29',
-    cvc: '***',
-  });
-
-  const [checkoutStep, setCheckoutStep] = useState(1); // 1 = Address, 2 = Payment, 3 = Success
+  const [checkoutStep, setCheckoutStep] = useState(1); // 1 = Address, 2 = Review, 3 = Success
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [createdOrder, setCreatedOrder] = useState(null);
@@ -41,11 +34,11 @@ export default function CheckoutPage() {
     setCheckoutStep(2);
   };
 
-  const handlePlaceOrderAndPay = async () => {
+  const handlePlaceOrder = async () => {
     setLoading(true);
     setError(null);
     try {
-      // 1. Create order on FastAPI
+      // Create order on FastAPI (saves directly to DB & finalizes payment)
       const orderPayload = {
         shipping_address: shippingAddress,
         billing_address: shippingAddress, // Simple duplicate for now
@@ -54,38 +47,7 @@ export default function CheckoutPage() {
       const order = await api.post('/orders', orderPayload);
       setCreatedOrder(order);
 
-      // 2. Fetch payment intent client secret
-      const intentRes = await api.post(`/orders/${order.id}/payment-intent`);
-
-      // 3. Complete payment (Mocking Stripe client success)
-      if (intentRes.isMock) {
-        console.log('Completing mock checkout flow via backend webhook call...');
-        
-        // Trigger payment success webhook directly on backend to finalize payment and decrement stock
-        const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
-        await fetch(`${apiBaseUrl}/orders/webhook`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            type: 'payment_intent.succeeded',
-            data: {
-              object: {
-                id: intentRes.clientSecret.split('_secret_')[0],
-                metadata: {
-                  order_id: order.id,
-                },
-              },
-            },
-          }),
-        });
-      } else {
-        // Real payment logic would call stripe.confirmCardPayment here.
-        // For development, we auto-finalize.
-      }
-
-      // 4. Success step
+      // Success step
       clearCart();
       setCheckoutStep(3);
     } catch (err) {
@@ -149,7 +111,7 @@ export default function CheckoutPage() {
                 1. Shipping Address
               </span>
               <span style={{ fontWeight: 600, color: checkoutStep === 2 ? 'var(--primary)' : 'var(--text-muted)' }}>
-                2. Secure Payment
+                2. Review & Place Order
               </span>
             </div>
 
@@ -226,57 +188,28 @@ export default function CheckoutPage() {
                   </div>
 
                   <button type="submit" className="btn btn-primary" style={{ marginTop: '12px' }}>
-                    Continue to Payment
+                    Continue to Review
                   </button>
                 </form>
               </div>
             ) : (
-              /* Payment Card Mock Form */
+              /* Review & Place Order Box */
               <div className="checkout-section-box">
                 <h2 style={{ fontSize: '1.5rem', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <CreditCard size={22} /> Card Payment
+                  <ShieldCheck size={22} style={{ color: 'var(--success)' }} /> Review & Place Order
                 </h2>
                 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  {/* Card Visual Representation */}
-                  <div 
-                    className="glass"
-                    style={{
-                      background: 'linear-gradient(135deg, var(--primary), var(--accent))',
-                      borderRadius: 'var(--radius-lg)',
-                      padding: '24px',
-                      color: 'var(--text-light)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '32px',
-                      boxShadow: 'var(--shadow-lg)',
-                      border: 'none'
-                    }}
-                  >
-                    <div className="flex justify-between align-center">
-                      <span style={{ fontSize: '1.25rem', fontWeight: 800 }}>NexMart Card</span>
-                      <CreditCard size={32} />
-                    </div>
-                    <div>
-                      <p style={{ fontSize: '1.5rem', letterSpacing: '0.15em', fontWeight: 500, marginBottom: '8px' }}>
-                        {cardDetails.number}
-                      </p>
-                      <div className="flex gap-lg">
-                        <div>
-                          <p style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.8 }}>Expires</p>
-                          <p style={{ fontWeight: 600 }}>{cardDetails.expiry}</p>
-                        </div>
-                        <div>
-                          <p style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.8 }}>CVC</p>
-                          <p style={{ fontWeight: 600 }}>{cardDetails.cvc}</p>
-                        </div>
-                      </div>
-                    </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div className="glass" style={{ padding: '20px', borderRadius: 'var(--radius-md)', fontSize: '0.95rem' }}>
+                    <h4 style={{ fontWeight: 600, marginBottom: '12px' }}>Shipping Address</h4>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}>{shippingAddress.fullName}</p>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}>{shippingAddress.addressLine1}</p>
+                    <p style={{ color: 'var(--text-secondary)' }}>{shippingAddress.city}, {shippingAddress.postalCode}, {shippingAddress.country}</p>
                   </div>
 
                   <div className="flex align-center gap-sm" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                     <ShieldCheck size={16} style={{ color: 'var(--success)' }} />
-                    <span>Secure 256-bit SSL encrypted mock payment window.</span>
+                    <span>Clicking 'Place Order' will instantly process your order and mock a successful checkout.</span>
                   </div>
 
                   <div className="flex gap-md" style={{ marginTop: '12px' }}>
@@ -289,11 +222,11 @@ export default function CheckoutPage() {
                     </button>
                     <button 
                       className="btn btn-primary" 
-                      onClick={handlePlaceOrderAndPay}
+                      onClick={handlePlaceOrder}
                       disabled={loading}
                       style={{ flex: 1 }}
                     >
-                      {loading ? 'Processing Payment...' : `Pay $${totalPrice.toFixed(2)} Now`}
+                      {loading ? 'Processing Order...' : 'Place Order'}
                     </button>
                   </div>
                 </div>
