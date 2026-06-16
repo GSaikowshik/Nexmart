@@ -1,0 +1,13 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-project.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key';
+
+if (supabaseUrl.includes('placeholder')) {
+  console.warn(
+    'Supabase environment variables are missing or placeholders. Using mock database/auth fallbacks.'
+  );
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export default supabase;

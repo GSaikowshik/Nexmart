@@ -7,7 +7,7 @@ import api from '../services/api';
 
 export default function CheckoutPage() {
   const { cartItems, totalPrice, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   // Address State
@@ -18,6 +18,20 @@ export default function CheckoutPage() {
     postalCode: '',
     country: '',
   });
+
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/login?redirect=/checkout');
+    }
+  }, [user, authLoading, navigate]);
+
+  if (authLoading) {
+    return (
+      <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
+        <h2>Loading...</h2>
+      </div>
+    );
+  }
 
   const [checkoutStep, setCheckoutStep] = useState(1); // 1 = Address, 2 = Review, 3 = Success
   const [loading, setLoading] = useState(false);
