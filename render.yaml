@@ -1,3 +1,4 @@
+# Render Blueprint configuration for NexMart FastAPI backend
 services:
   - type: web
     name: nexmart-backend
