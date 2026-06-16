@@ -14,8 +14,9 @@ export default function ProductCatalog() {
     async function fetchProducts() {
       try {
         setLoading(true);
-        // Fetch from FastAPI products endpoint (api client prefixes VITE_API_URL)
-        const data = await api.get('/products');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/products`);
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const data = await res.json();
         console.log('Fetched products:', data);
         setProducts(data);
       } catch (err) {
