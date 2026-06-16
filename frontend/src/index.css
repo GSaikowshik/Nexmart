@@ -954,3 +954,31 @@ img {
     gap: 16px;
   }
 }
+
+/* ==========================================================================
+   PRODUCT CATALOG & GRID SETUP (BULLETPROOF AUTO-FIT)
+   ========================================================================== */
+.product-catalog {
+  display: block;
+  overflow: visible;
+  padding: 2rem;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.product-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.product-card .product-card-img {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+}
+

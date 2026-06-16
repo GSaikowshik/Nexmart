@@ -151,11 +151,11 @@ export default function Shop() {
         </aside>
 
         {/* Product Grid Area */}
-        <main>
+        <main className="product-catalog">
           {loading ? (
-            <div className="grid grid-cols-3">
+            <div className="product-grid">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div className="card" key={i}>
+                <div className="card product-card" key={i}>
                   <div className="skeleton skeleton-image" style={{ height: '260px' }} />
                   <div className="product-card-content">
                     <div className="skeleton skeleton-text" style={{ width: '40%' }} />
@@ -181,9 +181,9 @@ export default function Shop() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-3">
+            <div className="product-grid">
               {products.map((product) => (
-                <div className="card" key={product.id}>
+                <div className="card product-card" key={product.id}>
                   <div 
                     className="product-card-img-wrapper"
                     onClick={() => navigate(`/product/${product.slug}`)}

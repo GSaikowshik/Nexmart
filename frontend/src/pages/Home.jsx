@@ -85,7 +85,7 @@ export default function Home() {
       </section>
 
       {/* Featured Products */}
-      <section>
+      <section className="product-catalog">
         <div className="flex justify-between align-center" style={{ marginBottom: '32px' }}>
           <h2 style={{ fontSize: '2rem' }}>Featured Products</h2>
           <Link to="/shop" className="btn btn-secondary" style={{ padding: '8px 16px' }}>
@@ -93,10 +93,10 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-4">
+        <div className="product-grid">
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => (
-              <div className="card" key={i}>
+              <div className="card product-card" key={i}>
                 <div className="skeleton skeleton-image" style={{ height: '260px' }} />
                 <div className="product-card-content">
                   <div className="skeleton skeleton-text" style={{ width: '40%' }} />
@@ -107,7 +107,7 @@ export default function Home() {
             ))
           ) : (
             featuredProducts.map((product) => (
-              <div className="card" key={product.id}>
+              <div className="card product-card" key={product.id}>
                 <div 
                   className="product-card-img-wrapper"
                   onClick={() => navigate(`/product/${product.slug}`)}
