@@ -1,238 +1,131 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Star, ShoppingCart, Filter, Search, SlidersHorizontal } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useCart } from '../context/CartContext';
 
-export default function Shop() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const { addToCart } = useCart();
-
-  const [categories, setCategories] = useState([]);
+export default function ProductCatalog() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Read URL parameters
-  const currentCategory = searchParams.get('category_slug') || '';
-  const currentSearch = searchParams.get('search') || '';
-  const currentSort = searchParams.get('sort_by') || '';
-
-  const [searchInput, setSearchInput] = useState(currentSearch);
-
-  useEffect(() => {
-    async function fetchFilterData() {
-      try {
-        const data = await api.get('/categories');
-        setCategories(data);
-      } catch (err) {
-        console.error('Failed to load categories:', err);
-      }
-    }
-    fetchFilterData();
-  }, []);
+  const [error, setError] = useState(null);
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchProducts() {
-      setLoading(true);
       try {
-        const queryParams = new URLSearchParams();
-        if (currentCategory) queryParams.append('category_slug', currentCategory);
-        if (currentSearch) queryParams.append('search', currentSearch);
-        if (currentSort) queryParams.append('sort_by', currentSort);
-
-        const data = await api.get(`/products?${queryParams.toString()}`);
+        setLoading(true);
+        // Fetch from FastAPI products endpoint (api client prefixes VITE_API_URL)
+        const data = await api.get('/products');
+        console.log('Fetched products:', data);
         setProducts(data);
       } catch (err) {
         console.error('Failed to fetch products:', err);
+        setError(err.message || 'Error loading products');
       } finally {
         setLoading(false);
       }
     }
     fetchProducts();
-  }, [currentCategory, currentSearch, currentSort]);
+  }, []);
 
-  const updateFilters = (key, value) => {
-    const newParams = new URLSearchParams(searchParams);
-    if (value) {
-      newParams.set(key, value);
-    } else {
-      newParams.delete(key);
-    }
-    setSearchParams(newParams);
+  // Foolproof styling
+  const gridStyle = {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '20px',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+    gap: '20px'
   };
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    updateFilters('search', searchInput);
+  const cardStyle = {
+    border: '1px solid #eaeaea',
+    borderRadius: '8px',
+    padding: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    background: 'white',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    position: 'relative'
   };
+
+  const imageStyle = {
+    width: '100%',
+    height: '200px',
+    objectFit: 'contain',
+    marginBottom: '16px',
+    cursor: 'pointer'
+  };
+
+  const buttonStyle = {
+    marginTop: '12px',
+    padding: '10px',
+    background: 'var(--primary, #0070f3)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontWeight: '600'
+  };
+
+  if (loading) {
+    return <div style={{ textAlign: 'center', padding: '50px', fontSize: '1.2rem' }}>Loading catalog...</div>;
+  }
+
+  if (error) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px', color: 'red' }}>
+        <h3>Error loading products</h3>
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="container">
-      <div className="flex justify-between align-center flex-wrap gap-md" style={{ marginBottom: '40px' }}>
-        <div>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 800 }}>Explore Shop</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Find your next favorite item from our quality catalog.</p>
-        </div>
-
-        {/* Search Input */}
-        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '8px', width: '100%', maxWidth: '400px' }}>
-          <div className="input-group" style={{ position: 'relative', flexDirection: 'row' }}>
-            <input
-              type="text"
-              className="input-control"
-              placeholder="Search products..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              style={{ flex: 1, paddingRight: '40px' }}
+    <div style={{ padding: '40px 0', minHeight: '60vh' }}>
+      <h1 style={{ textAlign: 'center', marginBottom: '10px', fontSize: '2.5rem', fontWeight: 800 }}>NexMart Catalog</h1>
+      <p style={{ textAlign: 'center', color: '#666', marginBottom: '30px' }}>Find your next favorite item</p>
+      
+      <div style={gridStyle}>
+        {products.map((product) => (
+          <div key={product.id} style={cardStyle}>
+            <img 
+              src={product.image_urls?.[0] || 'https://via.placeholder.com/200'} 
+              alt={product.name} 
+              style={imageStyle} 
+              onClick={() => navigate(`/product/${product.slug}`)}
             />
-            <button 
-              type="submit" 
-              style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}
+            <h3 
+              style={{ fontSize: '1.1rem', margin: '0 0 8px 0', color: '#333', cursor: 'pointer' }}
+              onClick={() => navigate(`/product/${product.slug}`)}
             >
-              <Search size={18} />
+              {product.name}
+            </h3>
+            <p style={{ 
+              fontSize: '0.9rem', 
+              color: '#666', 
+              margin: '0 0 16px 0',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              height: '2.7em'
+            }}>
+              {product.description}
+            </p>
+            <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#000' }}>
+                ${product.price?.toFixed(2)}
+              </span>
+            </div>
+            <button 
+              style={buttonStyle}
+              onClick={() => addToCart(product, 1)}
+            >
+              Add to Cart
             </button>
           </div>
-        </form>
-      </div>
-
-      <div className="shop-layout">
-        {/* Filters Sidebar */}
-        <aside className="glass" style={{ borderRadius: 'var(--radius-lg)', padding: '24px', height: 'fit-content', display: 'flex', flexDirection: 'column', gap: '28px' }}>
-          <div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <Filter size={18} /> Categories
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button 
-                onClick={() => updateFilters('category_slug', '')} 
-                style={{ 
-                  textAlign: 'left', 
-                  fontSize: '0.95rem',
-                  fontWeight: !currentCategory ? 600 : 400, 
-                  color: !currentCategory ? 'var(--primary)' : 'var(--text-secondary)'
-                }}
-              >
-                All Products
-              </button>
-              {categories.map((cat) => (
-                <button 
-                  key={cat.id} 
-                  onClick={() => updateFilters('category_slug', cat.slug)}
-                  style={{ 
-                    textAlign: 'left', 
-                    fontSize: '0.95rem',
-                    fontWeight: currentCategory === cat.slug ? 600 : 400, 
-                    color: currentCategory === cat.slug ? 'var(--primary)' : 'var(--text-secondary)'
-                  }}
-                >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <SlidersHorizontal size={18} /> Sort By
-            </h3>
-            <select 
-              className="input-control" 
-              value={currentSort}
-              onChange={(e) => updateFilters('sort_by', e.target.value)}
-              style={{ width: '100%', padding: '8px 12px' }}
-            >
-              <option value="">Featured</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="rating_desc">Highest Rated</option>
-            </select>
-          </div>
-        </aside>
-
-        {/* Product Grid Area */}
-        <main className="product-catalog">
-          {loading ? (
-            <div className="product-grid">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div className="card product-card" key={i}>
-                  <div className="skeleton skeleton-image" style={{ height: '260px' }} />
-                  <div className="product-card-content">
-                    <div className="skeleton skeleton-text" style={{ width: '40%' }} />
-                    <div className="skeleton skeleton-text" style={{ width: '85%' }} />
-                    <div className="skeleton skeleton-text" style={{ width: '50%', marginTop: '12px' }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : products.length === 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '16px', color: 'var(--text-muted)' }}>
-              <Search size={48} />
-              <h3>No products found</h3>
-              <p>Try clearing your search or category filters.</p>
-              <button 
-                className="btn btn-secondary" 
-                onClick={() => {
-                  setSearchParams({});
-                  setSearchInput('');
-                }}
-              >
-                Clear All Filters
-              </button>
-            </div>
-          ) : (
-            <div className="product-grid">
-              {products.map((product) => (
-                <div className="card product-card" key={product.id}>
-                  <div 
-                    className="product-card-img-wrapper"
-                    onClick={() => navigate(`/product/${product.slug}`)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <img src={product.image_urls?.[0]} alt={product.name} className="product-card-img" />
-                  </div>
-                  <div className="product-card-content">
-                    <span className="product-card-category">
-                      {categories.find((c) => c.id === product.category_id)?.name || 'Product'}
-                    </span>
-                    <h3 
-                      className="product-card-title"
-                      onClick={() => navigate(`/product/${product.slug}`)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      {product.name}
-                    </h3>
-                    
-                    <div className="flex align-center" style={{ gap: '4px', color: 'var(--warning)' }}>
-                      <Star size={16} fill="var(--warning)" />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                        {product.rating?.toFixed(1)}
-                      </span>
-                    </div>
-
-                    <div className="product-card-footer">
-                      <div className="product-card-price-group">
-                        <span className="product-card-price">${product.price.toFixed(2)}</span>
-                        {product.compare_at_price > product.price && (
-                          <span className="product-card-compare">${product.compare_at_price.toFixed(2)}</span>
-                        )}
-                      </div>
-
-                      <button 
-                        className="btn btn-primary"
-                        onClick={() => addToCart(product, 1)}
-                        style={{ padding: '8px' }}
-                        aria-label="Add to Cart"
-                      >
-                        <ShoppingCart size={18} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </main>
+        ))}
       </div>
     </div>
   );
