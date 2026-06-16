@@ -68,8 +68,8 @@ def get_products(
             else:
                 products_to_return = []
 
-    # Apply featured filter for mock data
-    if featured is not None and (not supabase_client or not response.data):
+    # Apply featured filter
+    if featured is not None:
         products_to_return = [p for p in products_to_return if p["is_featured"] == featured]
 
     # Apply search filter

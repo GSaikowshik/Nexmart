@@ -147,8 +147,16 @@ button {
 }
 
 .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-.grid-cols-3 { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
-.grid-cols-4 { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.grid-cols-3 {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  padding: 0 1rem;
+}
+.grid-cols-4 {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  padding: 0 1rem;
+}
 
 @media (max-width: 768px) {
   .grid-cols-2 { grid-template-columns: 1fr; }
@@ -281,6 +289,9 @@ h1, h2, h3, h4, h5, h6 {
   overflow: hidden;
   transition: transform var(--transition-normal), box-shadow var(--transition-normal);
   box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .card:hover {
@@ -513,7 +524,7 @@ main.app-content {
 
 /* Product Card Specifics */
 .product-card-img-wrapper {
-  height: 260px;
+  height: auto;
   background-color: var(--surface-hover);
   position: relative;
   overflow: hidden;
@@ -521,8 +532,8 @@ main.app-content {
 
 .product-card-img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
   transition: transform var(--transition-slow);
 }
 
@@ -549,9 +560,14 @@ main.app-content {
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-primary);
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: normal;
+  height: 2.4em;
+  line-height: 1.2;
 }
 
 .product-card-footer {
