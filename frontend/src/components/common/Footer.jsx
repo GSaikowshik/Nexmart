@@ -11,7 +11,7 @@ export default function Footer() {
           <div className="footer-col">
             <Link to="/" className="logo" style={{ marginBottom: '8px' }}>
               <ShoppingBag className="text-gradient" size={24} />
-              <span className="text-gradient">Veloce</span>
+              <span className="text-gradient">NexMart</span>
             </Link>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
               Experience the pinnacle of high-tech and style curated specifically for your modern aesthetic.
@@ -50,7 +50,7 @@ export default function Footer() {
         </div>
 
         <div className="footer-bottom flex justify-between align-center flex-wrap gap-md">
-          <p>&copy; {new Date().getFullYear()} Veloce Inc. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} NexMart Inc. All rights reserved.</p>
           <div className="flex gap-md">
             <a href="#" className="footer-link">Privacy Policy</a>
             <a href="#" className="footer-link">Terms of Service</a>

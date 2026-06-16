@@ -84,14 +84,14 @@ def run_tests():
     order_payload = {
         "shipping_address": {
             "fullName": "Jane Doe",
-            "addressLine1": "123 Veloce Way",
+            "addressLine1": "123 NexMart Way",
             "city": "San Francisco",
             "postalCode": "94105",
             "country": "USA"
         },
         "billing_address": {
             "fullName": "Jane Doe",
-            "addressLine1": "123 Veloce Way",
+            "addressLine1": "123 NexMart Way",
             "city": "San Francisco",
             "postalCode": "94105",
             "country": "USA"

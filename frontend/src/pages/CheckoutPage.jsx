@@ -254,7 +254,7 @@ export default function CheckoutPage() {
                     }}
                   >
                     <div className="flex justify-between align-center">
-                      <span style={{ fontSize: '1.25rem', fontWeight: 800 }}>Veloce Card</span>
+                      <span style={{ fontSize: '1.25rem', fontWeight: 800 }}>NexMart Card</span>
                       <CreditCard size={32} />
                     </div>
                     <div>

@@ -31,7 +31,7 @@ export default function Navbar({ onCartClick }) {
         {/* Logo */}
         <Link to="/" className="logo">
           <ShoppingBag className="text-gradient" size={28} />
-          <span className="text-gradient">Veloce</span>
+          <span className="text-gradient">NexMart</span>
         </Link>
 
         {/* Links */}

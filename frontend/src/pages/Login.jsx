@@ -44,7 +44,7 @@ export default function Login() {
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div className="logo" style={{ justifyContent: 'center', fontSize: '2rem', marginBottom: '12px' }}>
             <ShoppingBag className="text-gradient" size={36} />
-            <span className="text-gradient">Veloce</span>
+            <span className="text-gradient">NexMart</span>
           </div>
           <p style={{ color: 'var(--text-secondary)' }}>
             {isSignUp ? 'Create your shopping account' : 'Sign in to sync your cart and orders'}
