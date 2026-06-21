@@ -5,6 +5,15 @@ import api from '../services/api';
 import supabase from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 
+const getStatusStepIndex = (status) => {
+  const s = status?.toLowerCase();
+  if (s === 'processing') return 0;
+  if (s === 'shipped') return 1;
+  if (s === 'out for delivery' || s === 'out_for_delivery') return 2;
+  if (s === 'delivered') return 3;
+  return -1;
+};
+
 export default function OrdersPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -145,7 +154,91 @@ export default function OrdersPage() {
                 ))}
               </div>
 
-              <div className="flex justify-between align-center flex-wrap gap-md" style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '4px' }}>
+              {/* Visual Order Progress Timeline */}
+              {getStatusStepIndex(order.status) >= 0 && (
+                <div style={{
+                  padding: '24px 0',
+                  borderTop: '1px solid var(--border)',
+                  borderBottom: '1px solid var(--border)',
+                  margin: '12px 0'
+                }}>
+                  <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '24px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                    Tracking Timeline
+                  </p>
+                  <div style={{ position: 'relative', width: '100%', padding: '0 10px' }}>
+                    {/* Progress Bar background line */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '14px',
+                      left: '12.5%',
+                      right: '12.5%',
+                      height: '4px',
+                      backgroundColor: 'var(--border)',
+                      borderRadius: '2px',
+                      zIndex: 1
+                    }} />
+
+                    {/* Progress Bar active line */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '14px',
+                      left: '12.5%',
+                      width: `${(getStatusStepIndex(order.status) / 3) * 75}%`,
+                      height: '4px',
+                      backgroundColor: 'var(--success)',
+                      borderRadius: '2px',
+                      zIndex: 2,
+                      transition: 'width 0.4s ease'
+                    }} />
+
+                    {/* Steps Container */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', zIndex: 3 }}>
+                      {['Processing', 'Shipped', 'Out for Delivery', 'Delivered'].map((step, idx) => {
+                        const currentStepIndex = getStatusStepIndex(order.status);
+                        const isCompleted = idx <= currentStepIndex;
+                        const isActive = idx === currentStepIndex;
+
+                        return (
+                          <div key={step} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '25%' }}>
+                            <div style={{
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '50%',
+                              backgroundColor: isCompleted ? 'var(--success)' : 'var(--background)',
+                              border: `3px solid ${isCompleted ? 'var(--success)' : 'var(--border)'}`,
+                              color: isCompleted ? '#ffffff' : 'var(--text-muted)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 'bold',
+                              fontSize: '0.8rem',
+                              boxShadow: isActive ? '0 0 0 4px rgba(16, 185, 129, 0.2)' : 'none',
+                              transition: 'all 0.3s ease'
+                            }}>
+                              {isCompleted ? '✓' : idx + 1}
+                            </div>
+                            <span style={{
+                              marginTop: '8px',
+                              fontSize: '0.72rem',
+                              fontWeight: isActive ? '700' : isCompleted ? '600' : '500',
+                              color: isActive ? 'var(--text-primary)' : isCompleted ? 'var(--text-secondary)' : 'var(--text-muted)',
+                              textAlign: 'center',
+                              whiteSpace: 'normal',
+                              wordBreak: 'break-word',
+                              lineHeight: '1.2',
+                              padding: '0 4px'
+                            }}>
+                              {step}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-between align-center flex-wrap gap-md" style={{ borderTop: getStatusStepIndex(order.status) >= 0 ? 'none' : '1px solid var(--border)', paddingTop: getStatusStepIndex(order.status) >= 0 ? '0' : '16px', marginTop: '4px' }}>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                   <span 
                     style={{ 
@@ -174,10 +267,22 @@ export default function OrdersPage() {
                     Payment: {order.payment_status}
                   </span>
                 </div>
-                {order.status === 'processing' && (
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                    Est. delivery: 3-5 business days.
+                {order.estimated_delivery_date ? (
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                    <Calendar size={15} style={{ color: 'var(--primary)' }} />
+                    <span><strong>Expected Delivery:</strong>{' '}
+                    {new Date(order.estimated_delivery_date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}</span>
                   </p>
+                ) : (
+                  order.status === 'processing' && (
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                      Est. delivery: 3-5 business days.
+                    </p>
+                  )
                 )}
               </div>
             </div>

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Header, status
 from typing import List, Optional
 from uuid import UUID, uuid4
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 from app.core.config import settings
 from app.core.dependencies import get_current_user
@@ -101,6 +101,7 @@ def create_order(order_data: OrderCreate, current_user: dict = Depends(get_curre
         })
 
     order_id = uuid4()
+    estimated_delivery = datetime.utcnow() + timedelta(days=5)
     
     new_order = {
         "id": order_id,
@@ -112,7 +113,8 @@ def create_order(order_data: OrderCreate, current_user: dict = Depends(get_curre
         "payment_status": "paid",
         "payment_intent_id": None,
         "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
+        "updated_at": datetime.utcnow(),
+        "estimated_delivery_date": estimated_delivery
     }
 
     # 3. Save Order and Order Items
@@ -127,7 +129,8 @@ def create_order(order_data: OrderCreate, current_user: dict = Depends(get_curre
                 "total_amount": total_amount,
                 "shipping_address": order_data.shipping_address,
                 "billing_address": order_data.billing_address,
-                "payment_status": "paid"
+                "payment_status": "paid",
+                "estimated_delivery_date": estimated_delivery.isoformat()
             }).execute()
 
             # Insert Order Items

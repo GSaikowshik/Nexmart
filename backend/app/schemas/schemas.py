@@ -97,6 +97,7 @@ class Order(BaseModel):
     payment_intent_id: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    estimated_delivery_date: Optional[datetime] = None
     items: List[OrderItem] = []
 
     class Config:
