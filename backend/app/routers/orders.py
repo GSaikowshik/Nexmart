@@ -27,18 +27,23 @@ def decrement_product_stock(product_id: int, quantity: int):
         try:
             # First fetch current stock
             res = supabase_client.table("products").select("stock_quantity").eq("id", product_id).single().execute()
-            if res.data:
-                current_stock = res.data["stock_quantity"]
-                new_stock = max(0, current_stock - quantity)
-                supabase_client.table("products").update({"stock_quantity": new_stock}).eq("id", product_id).execute()
-                return
+            if res and hasattr(res, "data") and res.data:
+                current_stock = res.data.get("stock_quantity")
+                if current_stock is not None:
+                    new_stock = max(0, current_stock - quantity)
+                    supabase_client.table("products").update({"stock_quantity": new_stock}).eq("id", product_id).execute()
+                    return
         except Exception as e:
-            logger.error(f"Failed to decrement stock in DB: {e}")
+            logger.error(f"Failed to decrement stock in DB (PGRST116 or other): {e}")
+            pass
             
     # Mock fallback
-    p = next((prod for prod in MOCK_PRODUCTS if prod["id"] == product_id), None)
-    if p:
-        p["stock_quantity"] = max(0, p["stock_quantity"] - quantity)
+    try:
+        p = next((prod for prod in MOCK_PRODUCTS if prod["id"] == product_id), None)
+        if p:
+            p["stock_quantity"] = max(0, p["stock_quantity"] - quantity)
+    except Exception as e:
+        logger.error(f"Failed to decrement stock in Mock: {e}")
 
 @router.post("", response_model=Order)
 def create_order(order_data: OrderCreate, current_user: dict = Depends(get_current_user)):

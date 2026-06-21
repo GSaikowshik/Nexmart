@@ -9,7 +9,8 @@ supabase_client: Client = None
 
 try:
     if not settings.supabase_url.startswith("https://placeholder"):
-        supabase_client = create_client(settings.supabase_url, settings.supabase_anon_key)
+        supabase_key = settings.supabase_service_role_key or settings.supabase_anon_key
+        supabase_client = create_client(settings.supabase_url, supabase_key)
         logger.info("Supabase client initialized successfully.")
     else:
         logger.warning("Supabase URL is placeholder. Database operations will use mock in-memory data.")
