@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, AliasChoices
+from typing import Optional
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
