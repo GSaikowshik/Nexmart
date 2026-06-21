@@ -37,6 +37,7 @@ app.include_router(products.router, prefix="/api", tags=["Products"])
 app.include_router(cart.router, prefix="/api/v1/cart", tags=["Cart"])
 app.include_router(cart.router, prefix="/api/cart", tags=["Cart"])
 app.include_router(orders.router, prefix="/api/v1/orders", tags=["Orders"])
+app.include_router(orders.router, prefix="/api/orders", tags=["Orders"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
 
 @app.get("/")

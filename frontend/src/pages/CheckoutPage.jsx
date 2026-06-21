@@ -4,6 +4,7 @@ import { CreditCard, Truck, ShieldCheck, CheckCircle2, AlertCircle, ShoppingBag 
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import supabase from '../services/supabaseClient';
 
 export default function CheckoutPage() {
   const { cartItems, totalPrice, clearCart } = useCart();
@@ -37,6 +38,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [createdOrder, setCreatedOrder] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
 
   const handleAddressSubmit = (e) => {
     e.preventDefault();
@@ -52,18 +54,39 @@ export default function CheckoutPage() {
     setLoading(true);
     setError(null);
     try {
-      // Create order on FastAPI (saves directly to DB & finalizes payment)
       const orderPayload = {
         shipping_address: shippingAddress,
         billing_address: shippingAddress, // Simple duplicate for now
       };
 
-      const order = await api.post('/orders', orderPayload);
+      // Fetch active session and token
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || 'dev-mock-token';
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/orders/checkout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(orderPayload)
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({ detail: 'Checkout failed' }));
+        throw new Error(errJson.detail || 'Checkout failed');
+      }
+
+      const order = await res.json();
       setCreatedOrder(order);
 
-      // Success step
+      // Success step: show toast and redirect to order history
       clearCart();
-      setCheckoutStep(3);
+      setToastMessage('Order placed successfully! Redirecting...');
+      setTimeout(() => {
+        setToastMessage('');
+        navigate('/orders');
+      }, 2000);
     } catch (err) {
       console.error(err);
       setError(err.message || 'An error occurred during checkout. Please check stock levels.');
@@ -281,6 +304,23 @@ export default function CheckoutPage() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          backgroundColor: '#10b981',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          fontWeight: '600',
+          animation: 'fadeIn 0.3s'
+        }}>
+          {toastMessage}
         </div>
       )}
     </div>

@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 from datetime import datetime
 import logging
 from app.core.config import settings
-from app.core.security import get_current_user
+from app.core.dependencies import get_current_user
 from app.core.database import supabase_client, MOCK_ORDERS, MOCK_PRODUCTS, MOCK_CARTS
 from app.schemas.schemas import Order, OrderCreate, OrderItem, Product
 
@@ -185,8 +185,8 @@ def list_orders(current_user: dict = Depends(get_current_user)):
 
     if supabase_client is not None:
         try:
-            # Get orders
-            res = supabase_client.table("orders").select("*").eq("user_id", str(user_uuid)).execute()
+            # Get orders ordered by created_at desc
+            res = supabase_client.table("orders").select("*").eq("user_id", str(user_uuid)).order("created_at", desc=True).execute()
             for order in res.data:
                 # Get order items for each order
                 items_res = supabase_client.table("order_items").select("*, products(*)").eq("order_id", order["id"]).execute()
@@ -210,7 +210,10 @@ def list_orders(current_user: dict = Depends(get_current_user)):
             pass
 
     # Mock fallback
-    return MOCK_ORDERS.get(user_uuid, [])
+    user_orders = MOCK_ORDERS.get(user_uuid, [])
+    # Sort mock orders by created_at descending
+    user_orders = sorted(user_orders, key=lambda o: o.get("created_at") or datetime.utcnow(), reverse=True)
+    return user_orders
 
 @router.get("/{id}", response_model=Order)
 def get_order_details(id: UUID, current_user: dict = Depends(get_current_user)):
@@ -246,4 +249,11 @@ def get_order_details(id: UUID, current_user: dict = Depends(get_current_user)):
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return Order(**order)
+
+@router.post("/checkout", response_model=Order)
+def checkout_cart(order_data: OrderCreate, current_user: dict = Depends(get_current_user)):
+    """
+    Finalize checkout: converts the cart items to an order and clears the cart.
+    """
+    return create_order(order_data, current_user)
 

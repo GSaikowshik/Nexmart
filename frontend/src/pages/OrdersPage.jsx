@@ -79,7 +79,7 @@ export default function OrdersPage() {
               <div className="flex justify-between align-center flex-wrap gap-md" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
                 <div>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Order ID</p>
-                  <p style={{ fontWeight: 600, fontSize: '0.95rem' }}>{order.id}</p>
+                  <p style={{ fontWeight: 600, fontSize: '0.95rem', fontFamily: 'monospace' }}>{order.id.substring(0, 8)}...</p>
                 </div>
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <div style={{ textAlign: 'right' }}>

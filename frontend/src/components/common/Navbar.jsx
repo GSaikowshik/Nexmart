@@ -42,6 +42,11 @@ export default function Navbar({ onCartClick }) {
           <Link to="/shop" className={`nav-link ${location.pathname === '/shop' ? 'active' : ''}`}>
             Shop
           </Link>
+          {user && (
+            <Link to="/orders" className={`nav-link ${location.pathname === '/orders' ? 'active' : ''}`}>
+              My Orders
+            </Link>
+          )}
         </div>
 
         {/* Actions */}
