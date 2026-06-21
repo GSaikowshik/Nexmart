@@ -1,13 +1,25 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import api from '../services/api';
+import supabase from '../services/supabaseClient';
 
 const CartContext = createContext(null);
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 export function CartProvider({ children }) {
   const { user } = useAuth();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Helper to fetch the token and construct headers
+  const getAuthHeaders = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token || 'dev-mock-token';
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+  };
 
   // Load cart on auth state changes
   useEffect(() => {
@@ -18,10 +30,15 @@ export function CartProvider({ children }) {
           // If there are guest cart items in local storage, sync them to backend first
           const guestCart = JSON.parse(localStorage.getItem('guest_cart') || '[]');
           if (guestCart.length > 0) {
+            const headers = await getAuthHeaders();
             for (const item of guestCart) {
-              await api.post('/cart', {
-                product_id: item.product_id,
-                quantity: item.quantity,
+              await fetch(`${API_BASE_URL}/api/cart`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                  product_id: item.product_id,
+                  quantity: item.quantity,
+                })
               });
             }
             // Clear guest cart
@@ -29,8 +46,15 @@ export function CartProvider({ children }) {
           }
 
           // Fetch database synced cart
-          const summary = await api.get('/cart');
-          setCartItems(summary.items || []);
+          const headers = await getAuthHeaders();
+          const res = await fetch(`${API_BASE_URL}/api/cart`, {
+            method: 'GET',
+            headers
+          });
+          if (res.ok) {
+            const summary = await res.json();
+            setCartItems(summary.items || []);
+          }
         } catch (error) {
           console.error('Error fetching user cart:', error);
         }
@@ -47,9 +71,6 @@ export function CartProvider({ children }) {
 
   /**
    * Add a product to the cart, incrementing the quantity if it already exists.
-   * Used by product cards' "Add to Cart" buttons.
-   * The backend expects an absolute quantity (upsert), so we calculate:
-   *   newAbsoluteQty = existingQty + addedQty
    */
   const addToCart = async (product, quantity = 1) => {
     if (user) {
@@ -60,10 +81,21 @@ export function CartProvider({ children }) {
         );
         const newQty = (existing?.quantity || 0) + quantity;
 
-        const summary = await api.post('/cart', {
-          product_id: product.id,
-          quantity: newQty,
+        const headers = await getAuthHeaders();
+        const res = await fetch(`${API_BASE_URL}/api/cart`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            product_id: product.id,
+            quantity: newQty,
+          })
         });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const summary = await res.json();
         setCartItems(summary.items || []);
       } catch (error) {
         console.error('Error adding to database cart:', error);
@@ -96,8 +128,6 @@ export function CartProvider({ children }) {
 
   /**
    * Set the absolute quantity for a cart item.
-   * Used by CartDrawer's +/- quantity buttons where the caller
-   * already computed the desired absolute quantity.
    */
   const updateCartItemQty = async (product, absoluteQty) => {
     if (absoluteQty <= 0) {
@@ -106,10 +136,21 @@ export function CartProvider({ children }) {
 
     if (user) {
       try {
-        const summary = await api.post('/cart', {
-          product_id: product.id,
-          quantity: absoluteQty,
+        const headers = await getAuthHeaders();
+        const res = await fetch(`${API_BASE_URL}/api/cart`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            product_id: product.id,
+            quantity: absoluteQty,
+          })
         });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const summary = await res.json();
         setCartItems(summary.items || []);
       } catch (error) {
         console.error('Error updating cart item quantity:', error);
@@ -131,8 +172,17 @@ export function CartProvider({ children }) {
   const removeFromCart = async (productId) => {
     if (user) {
       try {
-        const summary = await api.delete(`/cart/${productId}`);
-        setCartItems(summary?.items || []);
+        const headers = await getAuthHeaders();
+        // Since DELETE endpoint is /api/cart/{productId} or /api/v1/cart/{productId}
+        // Let's call /api/cart/{productId} (to be aligned with the /api prefix support)
+        const res = await fetch(`${API_BASE_URL}/api/cart/${productId}`, {
+          method: 'DELETE',
+          headers
+        });
+        if (res.ok) {
+          const summary = await res.json();
+          setCartItems(summary?.items || []);
+        }
       } catch (error) {
         console.error('Error removing from database cart:', error);
       }
@@ -148,8 +198,15 @@ export function CartProvider({ children }) {
   const clearCart = async () => {
     if (user) {
       try {
-        const summary = await api.delete('/cart/clear');
-        setCartItems(summary?.items || []);
+        const headers = await getAuthHeaders();
+        const res = await fetch(`${API_BASE_URL}/api/cart/clear`, {
+          method: 'DELETE',
+          headers
+        });
+        if (res.ok) {
+          const summary = await res.json();
+          setCartItems(summary?.items || []);
+        }
       } catch (error) {
         console.error('Error clearing database cart:', error);
       }

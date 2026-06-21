@@ -9,6 +9,19 @@ export default function ProductCatalog() {
   const [error, setError] = useState(null);
   const { addToCart } = useCart();
   const navigate = useNavigate();
+  const [toastMessage, setToastMessage] = useState('');
+
+  const handleAddToCart = async (product) => {
+    try {
+      await addToCart(product, 1);
+      setToastMessage(`"${product.name}" added to cart!`);
+      setTimeout(() => setToastMessage(''), 3000);
+    } catch (err) {
+      console.error(err);
+      setToastMessage('Failed to add to cart.');
+      setTimeout(() => setToastMessage(''), 3000);
+    }
+  };
 
   useEffect(() => {
     async function fetchProducts() {
@@ -121,13 +134,31 @@ export default function ProductCatalog() {
             </div>
             <button 
               style={buttonStyle}
-              onClick={() => addToCart(product, 1)}
+              onClick={() => handleAddToCart(product)}
             >
               Add to Cart
             </button>
           </div>
         ))}
       </div>
+
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          backgroundColor: toastMessage.includes('Failed') ? '#ef4444' : '#10b981',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          fontWeight: '600',
+          animation: 'fadeIn 0.3s'
+        }}>
+          {toastMessage}
+        </div>
+      )}
     </div>
   );
 }
