@@ -109,8 +109,10 @@ export default function OrdersPage() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {orders.map((order) => (
-            <div className="card" key={order.id} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {orders.map((order) => {
+            console.log('Order Data:', order);
+            return (
+              <div className="card" key={order.id} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div className="flex justify-between align-center flex-wrap gap-md" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
                 <div>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Order ID</p>
@@ -267,26 +269,25 @@ export default function OrdersPage() {
                     Payment: {order.payment_status}
                   </span>
                 </div>
-                {order.estimated_delivery_date ? (
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                    <Calendar size={15} style={{ color: 'var(--primary)' }} />
-                    <span><strong>Expected Delivery:</strong>{' '}
-                    {new Date(order.estimated_delivery_date).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}</span>
-                  </p>
-                ) : (
-                  order.status === 'processing' && (
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                      Est. delivery: 3-5 business days.
-                    </p>
-                  )
-                )}
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                  <Calendar size={15} style={{ color: 'var(--primary)' }} />
+                  <span>
+                    <strong>Expected Delivery:</strong>{' '}
+                    {order.estimated_delivery_date ? (
+                      new Date(order.estimated_delivery_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })
+                    ) : (
+                      'Delivery date pending'
+                    )}
+                  </span>
+                </p>
               </div>
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

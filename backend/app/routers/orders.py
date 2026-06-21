@@ -101,7 +101,7 @@ def create_order(order_data: OrderCreate, current_user: dict = Depends(get_curre
         })
 
     order_id = uuid4()
-    estimated_delivery = datetime.utcnow() + timedelta(days=5)
+    estimated_delivery = datetime.now() + timedelta(days=5)
     
     new_order = {
         "id": order_id,

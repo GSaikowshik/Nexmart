@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional, Any
-from datetime import datetime
+from datetime import datetime, date
 from uuid import UUID
 
 # ----------------------------------------
@@ -97,7 +97,7 @@ class Order(BaseModel):
     payment_intent_id: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    estimated_delivery_date: Optional[datetime] = None
+    estimated_delivery_date: Optional[date] = None
     items: List[OrderItem] = []
 
     class Config:
