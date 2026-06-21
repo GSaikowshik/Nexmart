@@ -126,8 +126,11 @@ def create_order(order_data: OrderCreate, current_user: dict = Depends(get_curre
     db_success = False
     if supabase_client is not None:
         try:
+            from supabase import create_client
+            admin_client = create_client(settings.supabase_url, settings.supabase_service_role_key)
+
             # Insert Order
-            supabase_client.table("orders").insert({
+            admin_client.table("orders").insert({
                 "id": str(order_id),
                 "user_id": str(user_uuid),
                 "status": "processing",
@@ -140,17 +143,17 @@ def create_order(order_data: OrderCreate, current_user: dict = Depends(get_curre
 
             # Insert Order Items
             for item in items_to_create:
-                supabase_client.table("order_items").insert({
+                admin_client.table("order_items").insert({
                     "order_id": str(order_id),
                     "product_id": item["product_id"],
                     "quantity": item["quantity"],
                     "unit_price": item["unit_price"]
                 }).execute()
-                # Decrement stock in DB
-                decrement_product_stock(item["product_id"], item["quantity"])
+                # Decrement stock in DB (Temporarily disabled)
+                # decrement_product_stock(item["product_id"], item["quantity"])
 
             # Clear cart in DB
-            supabase_client.table("cart_items").delete().eq("user_id", str(user_uuid)).execute()
+            admin_client.table("cart_items").delete().eq("user_id", str(user_uuid)).execute()
             db_success = True
         except Exception as e:
             logger.error(f"Failed to persist order in Supabase: {e}")
@@ -173,8 +176,8 @@ def create_order(order_data: OrderCreate, current_user: dict = Depends(get_curre
                 product=item["product"]
             )
         )
-        if not db_success:
-            decrement_product_stock(item["product_id"], item["quantity"])
+        # if not db_success:
+        #     decrement_product_stock(item["product_id"], item["quantity"])
         
     mock_order_record = {**new_order, "items": response_items}
     user_orders.append(mock_order_record)
