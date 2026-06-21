@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ClipboardList, ArrowLeft, Calendar, Tag, AlertCircle } from 'lucide-react';
 import api from '../services/api';
+import supabase from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 
 export default function OrdersPage() {
@@ -18,7 +19,32 @@ export default function OrdersPage() {
 
     async function fetchOrders() {
       try {
-        const data = await api.get('/orders');
+        setLoading(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token || 'dev-mock-token';
+
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+        const url = baseUrl.endsWith('/api/v1') 
+          ? `${baseUrl}/orders` 
+          : baseUrl.endsWith('/api')
+            ? `${baseUrl}/orders`
+            : `${baseUrl}/api/orders`;
+
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        console.log('Order Fetch Response:', data);
+
         // Sort orders descending by date
         const sorted = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         setOrders(sorted);

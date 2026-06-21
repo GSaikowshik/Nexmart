@@ -63,7 +63,14 @@ export default function CheckoutPage() {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token || 'dev-mock-token';
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/orders/checkout`, {
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+      const checkoutUrl = baseUrl.endsWith('/api/v1') 
+        ? `${baseUrl}/orders/checkout` 
+        : baseUrl.endsWith('/api')
+          ? `${baseUrl}/orders/checkout`
+          : `${baseUrl}/api/orders/checkout`;
+
+      const res = await fetch(checkoutUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +96,9 @@ export default function CheckoutPage() {
       }, 2000);
     } catch (err) {
       console.error(err);
-      setError(err.message || 'An error occurred during checkout. Please check stock levels.');
+      const errMsg = err.message || 'An error occurred during checkout. Please check stock levels.';
+      setError(errMsg);
+      alert(`Checkout Error: ${errMsg}`);
     } finally {
       setLoading(false);
     }
