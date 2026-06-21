@@ -20,6 +20,7 @@ def get_categories():
 @router.get("/products", response_model=List[Product])
 def get_products(
     category_slug: Optional[str] = Query(None, description="Filter products by category slug"),
+    category: Optional[str] = Query(None, description="Filter products by category name"),
     search: Optional[str] = Query(None, description="Search products by name or description"),
     featured: Optional[bool] = Query(None, description="Filter featured products"),
     sort_by: Optional[str] = Query(None, description="Sort options: price_asc, price_desc, rating_desc")
@@ -32,19 +33,26 @@ def get_products(
         try:
             query = supabase_client.table("products").select("*, categories(*)")
             
-            # Note: Complex filtering logic using supabase client syntax
             if featured is not None:
                 query = query.eq("is_featured", featured)
                 
+            if category:
+                # Find category ID matching name or slug
+                cat_res = supabase_client.table("categories").select("id").eq("name", category).execute()
+                if not cat_res.data:
+                    cat_res = supabase_client.table("categories").select("id").eq("slug", category).execute()
+                
+                if cat_res.data:
+                    query = query.eq("category_id", cat_res.data[0]["id"])
+                else:
+                    return [] # Category not found
+
+            if search:
+                # Filter using .ilike() for fuzzy search on name or description
+                query = query.or_(f"name.ilike.%{search}%,description.ilike.%{search}%")
+                
             response = query.execute()
             products_to_return = response.data
-            
-            # Post-filter in python for slug or category fields if needed, or query join
-            if category_slug:
-                products_to_return = [
-                    p for p in products_to_return 
-                    if p.get("categories") and p["categories"].get("slug") == category_slug
-                ]
             
             # Flatten category reference if needed for schema matching
             for p in products_to_return:
@@ -60,9 +68,9 @@ def get_products(
     # Apply category filter for Mock data
     if not supabase_client or not products_to_return:
         products_to_return = MOCK_PRODUCTS.copy()
-        if category_slug:
-            # Find category id
-            cat = next((c for c in MOCK_CATEGORIES if c["slug"] == category_slug), None)
+        effective_category = category or category_slug
+        if effective_category:
+            cat = next((c for c in MOCK_CATEGORIES if c["slug"] == effective_category or c["name"].lower() == effective_category.lower()), None)
             if cat:
                 products_to_return = [p for p in products_to_return if p["category_id"] == cat["id"]]
             else:
@@ -72,7 +80,7 @@ def get_products(
     if featured is not None:
         products_to_return = [p for p in products_to_return if p["is_featured"] == featured]
 
-    # Apply search filter
+    # Apply search filter (for mock data or post-filtering)
     if search:
         search_lower = search.lower()
         products_to_return = [
